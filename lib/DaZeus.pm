@@ -11,7 +11,7 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 
 DaZeus - Perl interface to the DaZeus 2 Socket API
 
-=head1 SYNPOSIS
+=head1 SYNOPSIS
 
   use DaZeus;
   my $dazeus = DaZeus->connect("unix:/tmp/dazeus.sock");
