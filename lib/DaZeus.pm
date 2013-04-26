@@ -340,16 +340,38 @@ sub _addScope {
 	return scope => \@$scope;
 }
 
-=head2 getConfig($name)
+=head2 doHandshake($name, $version, [$configName])
+
+Does the optional DaZeus handshake, required for getting configuration later.
+If the configuration name is not given, $name is used for it.
+
+=cut
+
+sub doHandshake {
+	my ($self, $name, $version, $config) = @_;
+	$config ||= $name;
+	$self->_send({do => "handshake", params => [$name, $version, 1, $config]});
+	my $response = $self->_read();
+	if($response->{success}) {
+		return 1;
+	} else {
+		$response->{error} ||= "Request failed, no error";
+		die $response->{error};
+	}
+}
+
+=head2 getConfig($group, $name)
 
 Retrieves the given variable from the configuration file and returns
-its value. Calls die() if communication failed.
+its value. Calls die() if communication failed. $group can be "core" or
+"plugin"; "plugin" can only be used if you did a succesful handshake
+earlier.
 
 =cut
 
 sub getConfig {
-	my ($self, $name) = @_;
-	$self->_send({get => "config", params => [$name]});
+	my ($self, $group, $name) = @_;
+	$self->_send({get => "config", params => [$group, $name]});
 	my $response = $self->_read();
 	if($response->{success}) {
 		return $response->{value};
