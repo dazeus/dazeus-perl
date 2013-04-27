@@ -59,7 +59,7 @@ BEGIN {
 
 our $VERSION = '1.00';
 
-=head2 connect($socket)
+=head2 C<connect($socket)>
 
 Creates a DaZeus object connected to the given socket. Returns the object if
 the initial connection succeeded; otherwise, calls die(). If, after this
@@ -95,7 +95,7 @@ sub connect {
 	return $self->_connect();
 }
 
-=head2 socket()
+=head2 C<socket()>
 
 Returns the internal UNIX or TCP socket used for communication. This call is
 useful if you want to watch multiple sockets, for example, using the select()
@@ -151,7 +151,7 @@ sub _connect {
 	return $self;
 }
 
-=head2 networks()
+=head2 C<networks()>
 
 Returns a list of active networks on this DaZeus instance, or calls
 die() if communication failed.
@@ -170,7 +170,7 @@ sub networks {
 	}
 }
 
-=head2 channels($network)
+=head2 C<channels($network)>
 
 Returns a list of joined channels on the given network, or calls
 die() if communication failed.
@@ -189,7 +189,7 @@ sub channels {
 	}
 }
 
-=head2 message($network, $channel, $message)
+=head2 C<message($network, $channel, $message)>
 
 Sends given message to given channel on given network, or calls die()
 if communication failed.
@@ -208,7 +208,7 @@ sub message {
 	}
 }
 
-=head2 action($network, $channel, $message)
+=head2 C<action($network, $channel, $message)>
 
 Like message(), but sends the message as a CTCP ACTION (as if "/me" was used).
 
@@ -226,7 +226,7 @@ sub action {
 	}
 }
 
-=head2 sendNames($network, $channel)
+=head2 C<sendNames($network, $channel)>
 
 Requests a NAMES command being sent for the given channel on the given network.
 After this, a NAMES event will be produced using the normal event system
@@ -247,7 +247,7 @@ sub sendNames {
 	}
 }
 
-=head2 sendWhois($network, $nick)
+=head2 C<sendWhois($network, $nick)>
 
 Requests a WHOIS command being sent for the given nick on the given network.
 After this, a WHOIS event will be produced using the normal event system
@@ -268,7 +268,7 @@ sub sendWhois {
 	}
 }
 
-=head2 join($network, $channel)
+=head2 C<join($network, $channel)>
 
 Requests a JOIN command being sent for the given channel on the given network.
 After this, a JOIN event will be produced using the normal event system
@@ -289,7 +289,7 @@ sub join {
 	}
 }
 
-=head2 part($network, $channel)
+=head2 C<part($network, $channel)>
 
 Requests a PART command being sent for the given channel on the given network.
 After this, a PART event will be produced using the normal event system
@@ -310,7 +310,7 @@ sub part {
 	}
 }
 
-=head2 getNick($network)
+=head2 C<getNick($network)>
 
 Requests the current nickname on given network, and returns it. Calls die()
 if communication failed.
@@ -340,7 +340,7 @@ sub _addScope {
 	return scope => \@$scope;
 }
 
-=head2 doHandshake($name, $version, [$configName])
+=head2 C<doHandshake($name, $version, [$configName])>
 
 Does the optional DaZeus handshake, required for getting configuration later.
 If the configuration name is not given, $name is used for it.
@@ -360,7 +360,7 @@ sub doHandshake {
 	}
 }
 
-=head2 getConfig($group, $name)
+=head2 C<getConfig($group, $name)>
 
 Retrieves the given variable from the configuration file and returns
 its value. Calls die() if communication failed. $group can be "core" or
@@ -381,7 +381,7 @@ sub getConfig {
 	}
 }
 
-=head2 getProperty($name, [$network, [$receiver, [$sender]]])
+=head2 C<getProperty($name, [$network, [$receiver, [$sender]]])>
 
 Retrieves the given variable from the persistent database and returns
 its value. Optionally, context can be given for this property request,
@@ -409,7 +409,7 @@ sub getProperty {
 	}
 }
 
-=head2 setProperty($name, $value, [$network, [$receiver, [$sender]]])
+=head2 C<setProperty($name, $value, [$network, [$receiver, [$sender]]])>
 
 Stores the given variable to the persistent database. Optionally, context can
 be given for this property, so multiple properties with the same name and
@@ -441,7 +441,7 @@ sub setProperty {
 	}
 }
 
-=head2 unsetProperty($name, [$network, [$receiver, [$sender]]])
+=head2 C<unsetProperty($name, [$network, [$receiver, [$sender]]])>
 
 Unsets the given variable with given context from the persistent database. If
 no variable was found with the exact given context, no variables are removed.
@@ -461,7 +461,7 @@ sub unsetProperty {
 	}
 }
 
-=head2 getPropertyKeys($name, [$network, [$receiver, [$sender]]])
+=head2 C<getPropertyKeys($name, [$network, [$receiver, [$sender]]])>
 
 Retrieves all keys in a given namespace. I.e. if example.foo and example.bar
 were stored earlier, and getPropertyKeys("example") is called, "foo" and "bar"
@@ -483,7 +483,7 @@ sub getPropertyKeys {
 	}
 }
 
-=head2 subscribe($event, [$event, [$event, ..., [$coderef]]])
+=head2 C<subscribe($event, [$event, [$event, ..., [$coderef]]])>
 
 Subscribes to the given events. If the last parameter is a code reference, it
 will be called automatically every time one of the given events hits, with the
@@ -505,7 +505,7 @@ sub subscribe {
 	return $response->{added};
 }
 
-=head2 unsubscribe($event, [$event, [$event, ...]])
+=head2 C<unsubscribe($event, [$event, [$event, ...]])>
 
 Unsubscribe from the given events. They will no longer be received, until
 subscribe() is called again.
@@ -519,7 +519,7 @@ sub unsubscribe {
 	return $response->{removed};
 }
 
-=head2 handleEvent($timeout)
+=head2 C<handleEvent($timeout)>
 
 Returns all events that can be returned as soon as possible, but no longer
 than the given $timeout. If $timeout is zero, do not block. If timeout is
@@ -631,7 +631,7 @@ sub _readPacket {
 	return;
 }
 
-=head2 handleEvents()
+=head2 C<handleEvents()>
 
 Handle and return as much events as possible without blocking. Also calls the
 event handler for every returned event.
