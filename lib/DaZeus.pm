@@ -82,6 +82,7 @@ sub connect {
 
 	my $self = {
 		handlers => {},
+		command_handlers => {},
 		events => []
 	};
 	bless $self, $pkg;
@@ -505,6 +506,43 @@ sub subscribe {
 	return $response->{added};
 }
 
+=head2 C<subscribe_command($command, [$filter], [$coderef])>
+
+Subscribe to the given command. Filter is an optional hashref which looks like
+one of:
+
+  {network => 'name'}
+  {network => 'name', sender => 'ircnick'}
+  {network => 'name', receiver => 'ircnick'}
+
+Multiple subscriptions to the same command with a different filter is possible,
+but the last given coderef will be called for all of them.
+
+=cut
+
+sub subscribe_command {
+	my ($self, $command, $filter, $coderef) = @_;
+	if(ref($filter) eq "CODE") {
+		$coderef = $filter;
+		undef $filter;
+	}
+
+	$self->{command_handlers}{$command} = $coderef;
+
+	my $params = [$command];
+	if($filter) {
+		push @$params, $filter->{'network'};
+		if($filter->{'sender'}) {
+			push @$params, "true", $filter->{'sender'};
+		} elsif($filter->{'receiver'}) {
+			push @$params, "false", $filter->{'receiver'};
+		}
+	}
+	$self->_send({do => 'command', params => $params});
+	my $response = $self->_read();
+	return $response->{success};
+}
+
 =head2 C<unsubscribe($event, [$event, [$event, ...]])>
 
 Unsubscribe from the given events. They will no longer be received, until
@@ -552,6 +590,13 @@ sub handleEvent {
 	my $handler = $self->{handlers}{$event->{event}};
 	if($handler) {
 		$handler->($self, $event);
+	}
+	if(lc($event->{event}) eq "command") {
+		my $command = $event->{'params'}[3];
+		$handler = $self->{command_handlers}{$command};
+		if($handler) {
+			$handler->($self, @{$event->{'params'}});
+		}
 	}
 	return $event;
 }
