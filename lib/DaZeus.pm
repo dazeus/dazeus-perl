@@ -473,7 +473,6 @@ will be returned from this method. Calls die() if communication failed.
 sub getPropertyKeys {
 	my ($self, $name, @scope) = @_;
 	warn "DaZeus::getPropertyKeys(): warning: implementation requires readahead buffer fix\n";
-	return [];
 	$self->_send({do => "property", params => ["keys", $name], _addScope(@scope)});
 	my $response = $self->_read();
 	if($response->{success}) {
