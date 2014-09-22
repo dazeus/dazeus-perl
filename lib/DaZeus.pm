@@ -496,7 +496,7 @@ sub subscribe {
 	if(ref($events[$#events]) eq "CODE") {
 		my $handler = pop(@events);
 		foreach(@events) {
-			$self->{handlers}{$_} = $handler;
+			$self->{handlers}{uc($_)} = $handler;
 		}
 	}
 
