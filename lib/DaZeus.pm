@@ -707,7 +707,7 @@ sub _read {
 sub _send {
 	my ($self, $msg) = @_;
 	my $json = encode_json($msg);
-	$self->{sock}->write(bytes::length($json) . $json . "\r\n");
+	$self->socket->write(bytes::length($json) . $json . "\r\n");
 }
 
 1;
