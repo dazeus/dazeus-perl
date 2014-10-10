@@ -6,6 +6,7 @@ use JSON;
 use POSIX qw(:errno_h);
 use Storable qw(thaw freeze);
 use MIME::Base64 qw(encode_base64 decode_base64);
+use Carp;
 
 =head1 NAME
 
@@ -167,7 +168,7 @@ sub networks {
 		return $response->{networks};
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -186,7 +187,7 @@ sub channels {
 		return $response->{channels};
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -205,7 +206,7 @@ sub message {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -223,7 +224,7 @@ sub action {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -244,7 +245,7 @@ sub sendNames {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -265,7 +266,7 @@ sub sendWhois {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -286,7 +287,7 @@ sub join {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -307,7 +308,7 @@ sub part {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -326,7 +327,7 @@ sub getNick {
 		return $response->{'nick'};
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -357,7 +358,7 @@ sub doHandshake {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -378,7 +379,7 @@ sub getConfig {
 		return $response->{value};
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -406,7 +407,7 @@ sub getProperty {
 		return $value;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -438,7 +439,7 @@ sub setProperty {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
@@ -479,7 +480,7 @@ sub getPropertyKeys {
 		return $response->{keys};
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
