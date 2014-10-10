@@ -458,11 +458,11 @@ sub unsetProperty {
 		return 1;
 	} else {
 		$response->{error} ||= "Request failed, no error";
-		die $response->{error};
+		croak $response->{error};
 	}
 }
 
-=head2 C<getPropertyKeys($name, [$network, [$receiver, [$sender]]])>
+=head2 C<getPropertyKeys($name, $network, [$receiver, [$sender]])>
 
 Retrieves all keys in a given namespace. I.e. if example.foo and example.bar
 were stored earlier, and getPropertyKeys("example") is called, "foo" and "bar"
