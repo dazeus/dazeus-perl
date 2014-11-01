@@ -18,7 +18,7 @@ DaZeus - Perl interface to the DaZeus 2 Socket API
   my $dazeus = DaZeus->connect("unix:/tmp/dazeus.sock");
   # or:
   my $dazeus = DaZeus->connect("tcp:localhost:1234");
-  
+
   # Get connection status
   my $networks = $dazeus->networks();
   foreach (@$networks) {
@@ -28,9 +28,9 @@ DaZeus - Perl interface to the DaZeus 2 Socket API
       print "  $_\n";
     }
   }
-  
+
   $dazeus->subscribe("JOINED", sub { warn "JOINED event received!" });
-  
+
   $dazeus->subscribe(qw/PRIVMSG NOTICE/);
   while(my $event = $dazeus->handleEvent()) {
     next if($event->{'event'} eq "JOINED");
@@ -207,6 +207,23 @@ sub message {
 	} else {
 		$response->{error} ||= "Request failed, no error";
 		croak $response->{error};
+	}
+}
+
+=head2 C<reply($response, $network, $sender, $channel)>
+
+Sends a response to either the given channel or nick, depending on whether the
+conversation takes place in a query.
+
+=cut
+
+sub reply {
+	my ($self, $response, $network, $sender, $channel) = @_;
+
+	if ($channel eq $self->getNick($network)) {
+		$self->message($network, $sender, $response);
+	} else {
+		$self->message($network, $channel, $response);
 	}
 }
 
