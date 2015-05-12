@@ -416,8 +416,8 @@ sub getProperty {
 	my $response = $self->_read();
 	if($response->{success}) {
 		my $value = $response->{'value'};
-		$value = eval { thaw(decode_base64($value)) } || $value if defined $value;
-		# See comments in setProperty() for explanation
+		# Newer properties are stored as a JSON string, but we try to be backwards compatible...
+		$value = eval { thaw(decode_base64($value)) } || decode_json($value) || $value if defined $value;
 		if(ref($value) eq "HASH" && $value->{'__dazeus_Storable_wrapped'}) {
 			$value = $value->{'__wrapped_value'};
 		}
@@ -440,16 +440,7 @@ overriding settings per channel. Calls die() if communication failed.
 
 sub setProperty {
 	my ($self, $name, $value, @scope) = @_;
-	if(!ref($value)) {
-		# Storable has provisions for storing additional scalar state, such
-		# as the UTF-8 flag (see perlunicode). Therefore, even simple strings
-		# should be stored with Storable, and it wants references for freezing.
-		# This is why we build a reference around the value, in such a way that
-		# old reading code does not break because we still need to be backwards
-		# compatible.
-		$value = {"__dazeus_Storable_wrapped" => 1, "__wrapped_value" => $value};
-	}
-	$value = encode_base64(freeze($value));
+	$value = encode_json($value);
 	$self->_send({do => "property", params => ["set", $name, $value], _addScope(@scope)});
 	my $response = $self->_read();
 	if($response->{success}) {
