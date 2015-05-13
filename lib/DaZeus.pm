@@ -417,7 +417,7 @@ sub getProperty {
 	if($response->{success}) {
 		my $value = $response->{'value'};
 		# Newer properties are stored as a JSON string, but we try to be backwards compatible...
-		$value = eval { thaw(decode_base64($value)) } || decode_json($value) || $value if defined $value;
+		$value = eval { thaw(decode_base64($value)) } || eval { decode_json($value) } || $value if defined $value;
 		if(ref($value) eq "HASH" && $value->{'__dazeus_Storable_wrapped'}) {
 			$value = $value->{'__wrapped_value'};
 		}
