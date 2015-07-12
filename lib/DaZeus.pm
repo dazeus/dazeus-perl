@@ -613,8 +613,16 @@ sub _retrieveFromSocket {
 	my ($self) = @_;
 	my $size = 1024;
 	my $buf;
+
 	if (defined($self->{sock}->recv($buf, $size))) {
 		$self->{buffer} .= $buf;
+	}
+
+	# On OS X, if the other end closes the socket, recv() still returns success
+	# values and sets no error; however, connected() will be undef there
+	if(!defined($self->{sock}->connected())) {
+	    delete $self->{sock};
+	    die $!;
 	}
 }
 
