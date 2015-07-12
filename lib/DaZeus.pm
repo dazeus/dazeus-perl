@@ -84,7 +84,8 @@ sub connect {
 	my $self = {
 		handlers => {},
 		command_handlers => {},
-		events => []
+		events => [],
+		buffer => ''
 	};
 	bless $self, $pkg;
 
@@ -481,7 +482,6 @@ will be returned from this method. Calls die() if communication failed.
 
 sub getPropertyKeys {
 	my ($self, $name, @scope) = @_;
-	warn "DaZeus::getPropertyKeys(): warning: implementation requires readahead buffer fix\n";
 	$self->_send({do => "property", params => ["keys", $name], _addScope(@scope)});
 	my $response = $self->_read();
 	if($response->{success}) {
@@ -609,79 +609,59 @@ sub handleEvent {
 	return $event;
 }
 
+sub _retrieveFromSocket {
+	my ($self) = @_;
+	my $size = 1024;
+	my $buf;
+	if (defined($self->{sock}->recv($buf, $size))) {
+		$self->{buffer} .= $buf;
+	}
+}
+
+sub _findMessage {
+	my ($self) = @_;
+	my $offset = 0;
+	my $message_len = 0;
+
+	# First, find the length of the next message.
+	while ($offset < length($self->{buffer})) {
+		# Check for a number
+		if (substr($self->{buffer}, $offset, 1) =~ /[0-9]/) {
+			$message_len *= 10;
+			$message_len += substr($self->{buffer}, $offset, 1);
+			$offset += 1;
+		}
+		elsif (substr($self->{buffer}, $offset, 1) =~ /[\n\r]/) {
+			$offset += 1;
+		}
+		else {
+			last;
+		}
+	}
+
+	if ($message_len > 0 and length($self->{buffer}) >= $offset + $message_len) {
+		return ($offset, $message_len);
+	}
+	else {
+		return (undef, undef);
+	}
+}
+
 sub _readPacket {
 	use bytes;
 	my ($self, $timeout) = @_;
 	my $once = $timeout == 0 if(defined $timeout);
 	my $stop_time = time() + $timeout if(defined $timeout);
-	my $event_part;
-	my $last_event_part;
-	my $size = 3;
-	# A size of 20 bytes is too large, something must be happening
-	while($size < 20 && ($once || !defined($stop_time) || time() < $stop_time)) {
-		undef $event_part;
-		if(!defined($self->{sock}->recv($event_part, $size, MSG_PEEK))) {
-			if($! == EAGAIN) {
-				# Nothing to read, that's ok
-				if(defined $timeout && $timeout == 0) {
-					return;
-				}
-				# TODO: how to set a timeout parameter on sockets after creation?
-				next;
-			}
-			# Error in peek
-			delete $self->{sock};
-			die $!;
-		}
-		# On OS X, if the other end closes the socket, recv() still returns success
-		# values and sets no error; however, connected() will be undef there
-		if(!defined($self->{sock}->connected())) {
-			# Error in peek
-			delete $self->{sock};
-			die $!;
-		}
-		# TODO: change this to "if there are no more bytes available", more accurate
-		if($last_event_part && $last_event_part eq $event_part) {
-			$once = 0;
-		}
-		$last_event_part = $event_part;
-		if($event_part =~ /^[\r\n]+$/) {
-			# This seems to be necessary on my Linux machine; it refuses
-			# to read further than these newline bytes...
-			$self->{sock}->recv($event_part, length $event_part);
-		}
-		# Has enough data been read?
-		if(length($event_part) == $size && index($event_part, '{') > 0) {
-			# Start of JSON data found
-			my $pre_json_size = index($event_part, '{');
-			my $json_size = substr($event_part, 0, $pre_json_size);
-			# Ignore all non-numerals:
-			$json_size =~ s/[^0-9]//g;
 
-			# See if we can pull all the data from the socket now
-			if(!defined($self->{sock}->recv($event_part, $pre_json_size + $json_size, MSG_PEEK))) {
-				# Error in peek
-				delete $self->{sock};
-				die $!;
-			}
-			if(length($event_part) != ($pre_json_size + $json_size)) {
-				# Try again later
-				next;
-			}
-			# That worked, so now we can actually take it off the socket
-			if(!defined($self->{sock}->recv($event_part, $pre_json_size + $json_size))) {
-				# Error in read
-				delete $self->{sock};
-				die $!;
-			}
-			my $json = decode_json(substr($event_part, $pre_json_size));
-			return $json;
-		} elsif(length($event_part) == $size) {
-			# We read something, but it's not in this response yet
-			$size += 4;
+	while (1 && ($once || !defined($stop_time) || time() < $stop_time)) {
+		my ($offset, $message_len) = $self->_findMessage();
+		if (defined($offset)) {
+			my $json = substr($self->{buffer}, $offset, $message_len);
+			$self->{buffer} = substr($self->{buffer}, $offset + $message_len);
+			return decode_json($json);
 		}
+		$self->_retrieveFromSocket();
 	}
-	return;
 }
 
 =head2 C<handleEvents()>
