@@ -653,7 +653,7 @@ sub _readPacket {
 	my $once = $timeout == 0 if(defined $timeout);
 	my $stop_time = time() + $timeout if(defined $timeout);
 
-	while (1 && ($once || !defined($stop_time) || time() < $stop_time)) {
+	while ($once || !defined($stop_time) || time() < $stop_time) {
 		my ($offset, $message_len) = $self->_findMessage();
 		if (defined($offset)) {
 			my $json = substr($self->{buffer}, $offset, $message_len);
